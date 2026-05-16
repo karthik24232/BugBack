@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BugBack Edge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f2f7; --surface: #fff; --border: #e2e8f0;
+    --blue: #2563eb; --blue-bg: #eff6ff;
+    --green: #16a34a; --green-bg: #f0fdf4;
+    --red: #dc2626; --red-bg: #fff1f2;
+    --amber: #d97706; --amber-bg: #fffbeb;
+    --text: #1e293b; --muted: #64748b; --light: #94a3b8;
+    --sans: 'Plus Jakarta Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  .shell { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 60px 1fr; min-height: 100vh; }
+
+  /* topbar */
+  .topbar { grid-column: 1/-1; display: flex; align-items: center; gap: 16px; padding: 0 28px; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .logo { font-size: 20px; font-weight: 700; color: var(--blue); letter-spacing: -.3px; }
+  .tagline { font-size: 12px; color: var(--muted); border-left: 1px solid var(--border); padding-left: 16px; }
+  .nvidia-badge { margin-left: auto; background: #76b900; color: #fff; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+
+  /* sidebar */
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; }
+  .sidebar-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .chip { padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--muted); cursor: pointer; margin-bottom: 6px; transition: all .15s; line-height: 1.4; }
+  .chip:hover { border-color: var(--blue); color: var(--text); }
+  .chip.active { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); font-weight: 500; }
+  .sidebar input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--mono); font-size: 11px; color: var(--text); background: var(--bg); outline: none; transition: border-color .15s; }
+  .sidebar input:focus { border-color: var(--blue); }
+  .btn-clear { width: 100%; padding: 9px; border: 1.5px solid var(--border); background: #fff; color: var(--muted); border-radius: 8px; font-family: var(--sans); font-size: 12px; cursor: pointer; transition: all .15s; }
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+  hr { border: none; border-top: 1px solid var(--border); }
+
+  /* main */
+  .main { overflow-y: auto; display: flex; flex-direction: column; }
+  .complaint-bar { padding: 20px 28px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-end; }
+  .complaint-bar textarea { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 13px; color: var(--text); resize: none; outline: none; height: 68px; transition: border-color .15s; line-height: 1.5; }
+  .complaint-bar textarea:focus { border-color: var(--blue); }
+  .btn-run { padding: 13px 24px; background: var(--blue); color: #fff; font-family: var(--sans); font-weight: 600; font-size: 13px; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: background .15s; box-shadow: 0 2px 8px rgba(37,99,235,.25); }
+  .btn-run:hover { background: #1d4ed8; }
+  .btn-run:disabled { background: var(--light); cursor: not-allowed; box-shadow: none; }
+
+  /* metrics */
+  .metrics { display: grid; grid-template-columns: repeat(5,1fr); background: var(--surface); border-bottom: 1px solid var(--border); }
+  .metric { padding: 16px 24px; border-right: 1px solid var(--border); }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  .metric-value { font-size: 20px; font-weight: 700; }
+  .c-green { color: var(--green); } .c-amber { color: var(--amber); } .c-red { color: var(--red); } .c-blue { color: var(--blue); }
+
+  /* body */
+  .body { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .card-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .card-header h2 { font-size: 13px; font-weight: 600; }
+  .card-header .sub { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .dot-green { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .dot-amber { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
+
+  /* timeline */
+  #timeline-body { padding: 0 20px; }
+  .trow { display: grid; grid-template-columns: 32px 1fr 160px 160px; gap: 12px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--border); animation: fadeIn .25s ease; }
+  .trow:last-child { border-bottom: none; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .tstep { font-family: var(--mono); font-size: 11px; color: var(--light); padding-top: 2px; }
+  .taction strong { font-size: 13px; font-weight: 500; display: block; margin-bottom: 2px; }
+  .taction span { font-size: 11px; color: var(--muted); }
+  .ttool { font-family: var(--mono); font-size: 10px; color: var(--blue); background: var(--blue-bg); border-radius: 4px; padding: 2px 7px; display: inline-block; }
+  .tevidence { font-family: var(--mono); font-size: 10px; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 2px 7px; display: inline-block; }
+
+  /* evidence graph */
+  .eg { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 16px; align-items: center; padding: 20px; }
+  .eg-inputs { display: flex; flex-direction: column; gap: 10px; }
+  .eg-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .eg-card-title { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .eg-item { font-family: var(--mono); font-size: 10px; color: var(--text); border-left: 2px solid var(--border); padding-left: 8px; margin-bottom: 4px; line-height: 1.5; }
+  .eg-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .nvidia-node { width: 80px; height: 80px; border-radius: 50%; background: #76b900; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.4; letter-spacing: .05em; box-shadow: 0 4px 16px rgba(118,185,0,.3); }
+  .eg-arrow { font-size: 18px; color: var(--light); }
+  .cause-card { border: 2px solid var(--green); border-radius: 8px; padding: 14px; margin-bottom: 10px; background: var(--green-bg); }
+  .cause-label { font-size: 10px; font-weight: 600; color: var(--green); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+  .cause-name { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+  .reasoning-card { border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 0 8px 8px 0; padding: 12px 14px; }
+  .reasoning-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  .reasoning-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* two col */
+  .two-col { display: grid; grid-template-columns: 1.1fr .9fr; gap: 20px; }
+
+  /* browser evidence */
+  .card-body { padding: 20px; }
+  .verified-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--green-bg); border: 1px solid var(--green); color: var(--green); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 14px; }
+  .unverified-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--amber-bg); border: 1px solid var(--amber); color: var(--amber); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 14px; }
+  .obs { font-family: var(--mono); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; margin-bottom: 6px; }
+  .screenshot-box { margin-top: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .screenshot-box img { width: 100%; display: block; }
+
+  /* safety policy */
+  .warning-box { background: var(--amber-bg); border: 1px solid #fbbf24; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #92400e; margin-bottom: 12px; }
+  .info-box { background: var(--blue-bg); border: 1px solid #93c5fd; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #1e40af; margin-bottom: 16px; }
+  .action-group { margin-bottom: 14px; }
+  .action-group-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+  .action-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 5px; }
+  .adot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+  .btn-approve { flex: 1; padding: 9px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-approve:hover { background: #15803d; }
+  .btn-reject { flex: 1; padding: 9px; background: #fff; color: var(--muted); border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 12px; cursor: pointer; }
+  .btn-reject:hover { border-color: var(--text); color: var(--text); }
+  .approval-msg { margin-top: 10px; padding: 9px 12px; border-radius: 8px; font-size: 12px; display: none; }
+  .approval-msg.show { display: block; }
+
+  /* tabs */
+  .tab-bar { display: flex; border-bottom: 1px solid var(--border); padding: 0 20px; }
+  .tab { padding: 12px 16px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-pane { display: none; padding: 20px; }
+  .tab-pane.active { display: block; }
+  .code-block { font-family: var(--mono); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; white-space: pre-wrap; line-height: 1.8; overflow-x: auto; }
+  .email-block { font-size: 13px; line-height: 1.9; max-width: 520px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .json-block { font-family: var(--mono); font-size: 11px; color: var(--green); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; white-space: pre; overflow-x: auto; }
+
+  /* loading */
+  .loading-bar { height: 3px; background: var(--blue-bg); overflow: hidden; display: none; }
+  .loading-bar.active { display: block; }
+  .loading-bar-fill { height: 100%; background: var(--blue); animation: slide 1.4s ease-in-out infinite; }
+  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+
+  .hidden { display: none !important; }
+
+  /* error */
+  .error-box { background: var(--red-bg); border: 1px solid #fca5a5; border-radius: 8px; padding: 14px 16px; color: var(--red); font-size: 13px; margin: 24px 28px; }
+
+  /* empty state */
+  .empty-state { padding: 60px 28px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="logo">BugBack Edge</div>
+    <div class="tagline">Customer complaint → verified bug → safe engineering action</div>
+    <div class="nvidia-badge">Powered by NVIDIA Nemotron</div>
+  </header>
+
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-label">Sample complaints</div>
+      <div class="chip active" data-complaint="I tried to use my discount code SAVE20, but it disappeared at checkout.">Discount code SAVE20 disappeared at checkout</div>
+      <div class="chip" data-complaint="The app charged me twice for the same order after I clicked pay once.">Charged twice after one payment click</div>
+      <div class="chip" data-complaint="The page froze when I opened the cart drawer.">Page froze when opening cart drawer</div>
+    </div>
+    <hr />
+    <div>
+      <div class="sidebar-label">Demo store URL</div>
+      <input type="text" id="base-url" value="http://127.0.0.1:5001" />
+    </div>
+    <button class="btn-clear" onclick="clearMemory()">Clear persistent memory</button>
+    <div id="memory-msg" class="approval-msg" style="background:var(--green-bg);color:var(--green);border:1px solid var(--green)"></div>
+  </aside>
+
+  <main class="main">
+    <div class="complaint-bar">
+      <textarea id="complaint-input">I tried to use my discount code SAVE20, but it disappeared at checkout.</textarea>
+      <button class="btn-run" id="run-btn" onclick="runInvestigation()">Run autonomous investigation</button>
+    </div>
+
+    <div class="loading-bar" id="loading-bar"><div class="loading-bar-fill"></div></div>
+
+    <div id="error-container"></div>
+
+    <!-- metrics — hidden until done -->
+    <div class="metrics hidden" id="metrics">
+      <div class="metric"><div class="metric-label">Status</div><div class="metric-value" id="m-status">—</div></div>
+      <div class="metric"><div class="metric-label">Severity</div><div class="metric-value" id="m-severity">—</div></div>
+      <div class="metric"><div class="metric-label">Affected Area</div><div class="metric-value" id="m-area" style="font-size:16px;padding-top:4px">—</div></div>
+      <div class="metric"><div class="metric-label">Likely Cause</div><div class="metric-value" id="m-cause" style="font-family:var(--mono);font-size:13px;padding-top:4px">—</div></div>
+      <div class="metric"><div class="metric-label">Approval Required</div><div class="metric-value" id="m-approval">—</div></div>
+    </div>
+
+    <div class="body" id="results-body">
+
+      <!-- empty state -->
+      <div class="empty-state" id="empty-state">Select a complaint and click <strong>Run autonomous investigation</strong> to begin.</div>
+
+      <!-- timeline card — shown as soon as first step arrives -->
+      <div class="card hidden" id="timeline-card">
+        <div class="card-header">
+          <div class="dot-green"></div>
+          <h2>Agent timeline</h2>
+          <span class="sub" id="step-count"></span>
+        </div>
+        <div id="timeline-body"></div>
+      </div>
+
+      <!-- evidence graph — shown when done -->
+      <div class="card hidden" id="evidence-graph-card">
+        <div class="card-header">
+          <div class="dot-green"></div>
+          <h2>Evidence graph &nbsp;·&nbsp; what Nemotron reasoned over</h2>
+        </div>
+        <div class="eg" id="evidence-graph"></div>
+      </div>
+
+      <!-- browser + policy -->
+      <div class="two-col hidden" id="two-col">
+        <div class="card">
+          <div class="card-header"><div class="dot-green"></div><h2>Browser evidence</h2></div>
+          <div class="card-body" id="browser-evidence"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="dot-amber"></div><h2>Safety policy</h2></div>
+          <div class="card-body" id="safety-policy"></div>
+        </div>
+      </div>
+
+      <!-- tabs -->
+      <div class="card hidden" id="tabs-card">
+        <div class="tab-bar">
+          <div class="tab active" onclick="switchTab(this,'t1')">Engineering ticket</div>
+          <div class="tab" onclick="switchTab(this,'t2')">Customer response</div>
+          <div class="tab" onclick="switchTab(this,'t3')">Logs</div>
+          <div class="tab" onclick="switchTab(this,'t4')">Feature flags</div>
+          <div class="tab" onclick="switchTab(this,'t5')">Memory</div>
+        </div>
+        <div id="t1" class="tab-pane active"><div class="code-block" id="tab-ticket"></div></div>
+        <div id="t2" class="tab-pane"><div class="email-block" id="tab-response"></div></div>
+        <div id="t3" class="tab-pane"><div class="json-block" id="tab-logs"></div></div>
+        <div id="t4" class="tab-pane"><div class="json-block" id="tab-flags"></div></div>
+        <div id="t5" class="tab-pane"><div class="json-block" id="tab-memory"></div></div>
+      </div>
+
+    </div><!-- /body -->
+  </main>
+</div>
+
+<script>
+  // ── chip selection ──────────────────────────────────────────────
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      document.getElementById('complaint-input').value = chip.dataset.complaint;
+    });
+  });
+
+  // ── helpers ─────────────────────────────────────────────────────
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+  function switchTab(el, id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(id).classList.add('active');
+  }
+
+  async function clearMemory() {
+    await fetch('/clear-memory', { method: 'POST' });
+    const msg = document.getElementById('memory-msg');
+    msg.textContent = 'Memory cleared.';
+    msg.classList.add('show');
+    setTimeout(() => msg.classList.remove('show'), 2500);
+  }
+
+  // ── run investigation ───────────────────────────────────────────
+  let stepCount = 0;
+
+  async function runInvestigation() {
+    const complaint = document.getElementById('complaint-input').value.trim();
+    if (!complaint) return;
+
+    // reset
+    stepCount = 0;
+    document.getElementById('timeline-body').innerHTML = '';
+    document.getElementById('error-container').innerHTML = '';
+    hide('metrics'); hide('timeline-card'); hide('evidence-graph-card');
+    hide('two-col'); hide('tabs-card');
+    show('empty-state');
+    document.getElementById('empty-state').textContent = 'Running autonomous investigation…';
+
+    document.getElementById('run-btn').disabled = true;
+    document.getElementById('loading-bar').classList.add('active');
+
+    try {
+      const response = await fetch('/investigate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          complaint,
+          base_url: document.getElementById('base-url').value
+        })
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try { handleEvent(JSON.parse(line.slice(6))); } catch(e) {}
+          }
+        }
+      }
+    } catch (e) {
+      showError('Investigation failed. Make sure the demo store is running in another terminal (python3 demo_store/app.py).');
+    }
+
+    document.getElementById('run-btn').disabled = false;
+    document.getElementById('loading-bar').classList.remove('active');
+  }
+
+  function handleEvent(event) {
+    if (event.type === 'step') addTimelineRow(event.payload);
+    else if (event.type === 'done') renderResults(event.payload);
+    else if (event.type === 'error') showError(event.payload);
+  }
+
+  function showError(msg) {
+    document.getElementById('error-container').innerHTML =
+      `<div class="error-box">${esc(msg)}</div>`;
+  }
+
+  // ── timeline ────────────────────────────────────────────────────
+  function addTimelineRow(step) {
+    stepCount++;
+    hide('empty-state');
+    show('timeline-card');
+    document.getElementById('step-count').textContent = `${stepCount} step${stepCount > 1 ? 's' : ''}`;
+
+    const tool = step.tool ? `<span class="ttool">${esc(step.tool)}</span>` : '—';
+    const evidence = step.evidence ? `<span class="tevidence">${esc(step.evidence)}</span>` : '—';
+    const row = document.createElement('div');
+    row.className = 'trow';
+    row.innerHTML = `
+      <div class="tstep">${String(step.step).padStart(2,'0')}</div>
+      <div class="taction"><strong>${esc(step.title)}</strong><span>${esc(step.detail)}</span></div>
+      <div>${tool}</div>
+      <div>${evidence}</div>`;
+    document.getElementById('timeline-body').appendChild(row);
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── full result render ──────────────────────────────────────────
+  function renderResults(r) {
+    renderMetrics(r);
+    renderEvidenceGraph(r);
+    renderBrowserEvidence(r);
+    renderSafetyPolicy(r);
+    renderTabs(r);
+    show('metrics');
+    show('evidence-graph-card');
+    show('two-col');
+    show('tabs-card');
+    document.getElementById('timeline-card').querySelector('.sub').textContent =
+      `${r.timeline.length} steps · complete`;
+  }
+
+  function renderMetrics(r) {
+    const statusEl = document.getElementById('m-status');
+    statusEl.textContent = r.status;
+    statusEl.className = 'metric-value ' + (r.status === 'VERIFIED' ? 'c-green' : 'c-amber');
+
+    const sevEl = document.getElementById('m-severity');
+    sevEl.textContent = r.severity;
+    sevEl.className = 'metric-value ' + (r.severity === 'P0' || r.severity === 'P1' ? 'c-red' : 'c-amber');
+
+    document.getElementById('m-area').textContent = r.plan.affected_area;
+    document.getElementById('m-cause').textContent = r.likely_cause;
+
+    const appEl = document.getElementById('m-approval');
+    appEl.textContent = r.policy.requires_human_approval ? 'YES' : 'NO';
+    appEl.className = 'metric-value ' + (r.policy.requires_human_approval ? 'c-red' : 'c-green');
+  }
+
+  function renderEvidenceGraph(r) {
+    const ev = r.evidence;
+    const obsHtml = ev.browser.observations.map(o => `<div class="eg-item">${esc(o)}</div>`).join('') || '<div class="eg-item">None</div>';
+    const logHtml = ev.matching_logs.map(l => `<div class="eg-item">[${esc(l.level)}] ${esc(l.message)}</div>`).join('') || '<div class="eg-item">No matching logs</div>';
+    const flagHtml = ev.matching_flags.map(f => `<div class="eg-item">${esc(f.name)} · risk=${esc(f.risk)}</div>`).join('') || '<div class="eg-item">No matching flags</div>';
+
+    document.getElementById('evidence-graph').innerHTML = `
+      <div class="eg-inputs">
+        <div class="eg-card"><div class="eg-card-title">Browser observations</div>${obsHtml}</div>
+        <div class="eg-card"><div class="eg-card-title">System logs</div>${logHtml}</div>
+        <div class="eg-card"><div class="eg-card-title">Feature flags</div>${flagHtml}</div>
+      </div>
+      <div class="eg-center">
+        <div class="eg-arrow">→</div>
+        <div class="nvidia-node">NVIDIA<br>Nemotron</div>
+        <div class="eg-arrow">→</div>
+      </div>
+      <div>
+        <div class="cause-card">
+          <div class="cause-label">Root cause identified</div>
+          <div class="cause-name">${esc(r.likely_cause)}</div>
+        </div>
+        <div class="reasoning-card">
+          <div class="reasoning-label">Model reasoning</div>
+          <div class="reasoning-text">${esc(r.root_cause_reasoning)}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderBrowserEvidence(r) {
+    const b = r.evidence.browser;
+    const pill = b.verified
+      ? `<div class="verified-pill"><div class="dot-green"></div>VERIFIED</div>`
+      : `<div class="unverified-pill">UNVERIFIED</div>`;
+    const obs = b.observations.map(o => `<div class="obs">${esc(o)}</div>`).join('');
+    const shot = b.screenshot_path
+      ? `<div class="screenshot-box"><img src="/screenshot?path=${encodeURIComponent(b.screenshot_path)}" alt="Browser screenshot" /></div>`
+      : '';
+    document.getElementById('browser-evidence').innerHTML = pill + obs + shot;
+  }
+
+  function renderSafetyPolicy(r) {
+    const p = r.policy;
+    const allowed = p.allowed_autonomous_actions.map(a =>
+      `<div class="action-row"><div class="adot" style="background:var(--green)"></div>${esc(a)}</div>`).join('');
+    const blocked = p.blocked_autonomous_actions.map(a =>
+      `<div class="action-row"><div class="adot" style="background:var(--red)"></div>${esc(a)}</div>`).join('');
+
+    document.getElementById('safety-policy').innerHTML = `
+      <div class="warning-box">${esc(p.reason)}</div>
+      <div class="info-box">${esc(p.recommended_action)}</div>
+      <div class="action-group">
+        <div class="action-group-label">Allowed autonomous</div>${allowed}
+      </div>
+      <div class="action-group">
+        <div class="action-group-label">Blocked without approval</div>${blocked}
+      </div>
+      <div class="btn-row">
+        <button class="btn-approve" onclick="simulateApproval()">Simulate approval</button>
+        <button class="btn-reject" onclick="ticketOnly()">Create ticket only</button>
+      </div>
+      <div id="approval-msg" class="approval-msg"></div>`;
+  }
+
+  function simulateApproval() {
+    const msg = document.getElementById('approval-msg');
+    msg.style.background = 'var(--green-bg)';
+    msg.style.color = 'var(--green)';
+    msg.style.border = '1px solid var(--green)';
+    msg.textContent = 'Approval recorded. In production this would call the feature-flag API.';
+    msg.classList.add('show');
+  }
+  function ticketOnly() {
+    const msg = document.getElementById('approval-msg');
+    msg.style.background = 'var(--blue-bg)';
+    msg.style.color = 'var(--blue)';
+    msg.style.border = '1px solid #93c5fd';
+    msg.textContent = 'Safe fallback: ticket created, rollback not executed.';
+    msg.classList.add('show');
+  }
+
+  function renderTabs(r) {
+    document.getElementById('tab-ticket').textContent = r.engineering_ticket;
+    document.getElementById('tab-response').innerHTML = esc(r.customer_response).replace(/\n/g, '<br>');
+    document.getElementById('tab-logs').textContent = JSON.stringify(r.evidence.matching_logs, null, 2);
+    document.getElementById('tab-flags').textContent = JSON.stringify(r.evidence.matching_flags, null, 2);
+    document.getElementById('tab-memory').textContent = JSON.stringify(r.evidence.memory_matches, null, 2);
+    // reset to first tab
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+    document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active', i===0));
+  }
+</script>
+</body>
+</html>

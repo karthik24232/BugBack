@@ -15,18 +15,22 @@ MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 
 class BugBackAgent:
-    def __init__(self, base_url="http://127.0.0.1:5001", memory_path="data/memory.json"):
+    def __init__(self, base_url="http://127.0.0.1:5001", memory_path="data/memory.json", on_step=None):
         self.browser = BrowserReproductionTool(base_url=base_url)
         self.data = DataTools()
         self.memory = PersistentMemory(memory_path)
         self.timeline: List[AgentStep] = []
+        self.on_step = on_step
         self.llm = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
             api_key=os.environ["NVIDIA_API_KEY"],
         )
 
     def add_step(self, title: str, detail: str, tool: str | None = None, evidence: str | None = None):
-        self.timeline.append(AgentStep(len(self.timeline) + 1, title, detail, "done", tool, evidence))
+        step = AgentStep(len(self.timeline) + 1, title, detail, "done", tool, evidence)
+        self.timeline.append(step)
+        if self.on_step:
+            self.on_step(step)
 
     def plan_complaint(self, complaint: str) -> ComplaintPlan:
         self.add_step("Read customer complaint", complaint, tool="complaint_intake")

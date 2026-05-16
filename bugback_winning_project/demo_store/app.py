@@ -39,9 +39,9 @@ def home():
     <div class="nav"><b>BugBack Demo Store</b><span class="small">Intentionally broken test site</span></div>
     <div class="container">
       <div class="card">
-        <h1>Wireless Headphones</h1>
+        <h1>NVIDIA GPU</h1>
         <p class="small">Demo product used for autonomous browser reproduction.</p>
-        <p class="price">$100.00</p>
+        <p class="price">$3000.00</p>
         <form action="/add_to_cart" method="post">
           <button id="add-to-cart" type="submit">Add to cart</button>
           <button id="open-cart" class="secondary" type="button" onclick="freezeCart()">Open cart drawer</button>

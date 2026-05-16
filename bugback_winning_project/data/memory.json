@@ -1,38 +1,38 @@
 [
   {
-    "created_at": "2026-05-15T20:22:01",
+    "created_at": "2026-05-15T22:39:04",
+    "complaint": "The app charged me twice for the same order after I clicked pay once.",
+    "status": "VERIFIED",
+    "severity": "P0",
+    "affected_area": "payments",
+    "issue_type": "Duplicate charge after single payment click",
+    "likely_cause": "payment-retry-handler"
+  },
+  {
+    "created_at": "2026-05-15T23:21:49",
     "complaint": "I tried to use my discount code SAVE20, but it disappeared at checkout.",
     "status": "VERIFIED",
     "severity": "P2",
     "affected_area": "checkout",
-    "issue_type": "Discount disappears during checkout",
+    "issue_type": "Discount code SAVE20 disappears during checkout and is not applied",
     "likely_cause": "promo-engine-v2"
   },
   {
-    "created_at": "2026-05-15T21:07:27",
+    "created_at": "2026-05-15T23:51:04",
     "complaint": "I tried to use my discount code SAVE20, but it disappeared at checkout.",
     "status": "VERIFIED",
     "severity": "P1",
     "affected_area": "checkout",
-    "issue_type": "Discount disappears during checkout",
+    "issue_type": "Discount code SAVE20 disappears or fails to apply at checkout",
     "likely_cause": "promo-engine-v2"
   },
   {
-    "created_at": "2026-05-15T21:22:17",
-    "complaint": "I tried to use my discount code SAVE20, but it disappeared at checkout.",
+    "created_at": "2026-05-15T23:59:06",
+    "complaint": "My discount code SAVE20 wasn't working, i tried using it",
     "status": "VERIFIED",
     "severity": "P1",
     "affected_area": "checkout",
-    "issue_type": "Discount code SAVE20 disappears at checkout without being applied",
-    "likely_cause": "promo-engine-v2"
-  },
-  {
-    "created_at": "2026-05-15T21:27:28",
-    "complaint": "I tried to use my discount code SAVE20, but it disappeared at checkout.",
-    "status": "VERIFIED",
-    "severity": "P1",
-    "affected_area": "checkout",
-    "issue_type": "Discount code SAVE20 disappears at checkout",
+    "issue_type": "Discount code SAVE20 not applying at checkout",
     "likely_cause": "promo-engine-v2"
   }
 ]
