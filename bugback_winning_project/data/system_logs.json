@@ -1,0 +1,58 @@
+[
+  {
+    "timestamp": "2026-05-15T18:11:08",
+    "level": "ERROR",
+    "area": "checkout",
+    "message": "PromoCodeValidationError: discount object removed during checkout session refresh",
+    "feature_flag": "promo-engine-v2",
+    "customer_visible": true
+  },
+  {
+    "timestamp": "2026-05-15T18:12:42",
+    "level": "WARN",
+    "area": "checkout",
+    "message": "SAVE20 applied in cart then dropped after route /checkout loaded",
+    "feature_flag": "promo-engine-v2",
+    "customer_visible": true
+  },
+  {
+    "timestamp": "2026-05-15T18:19:51",
+    "level": "CRITICAL",
+    "area": "payments",
+    "message": "Duplicate authorization created for retry_id=pay_retry_842 after confirmation timeout",
+    "feature_flag": "payment-retry-handler",
+    "customer_visible": true
+  },
+  {
+    "timestamp": "2026-05-15T18:20:13",
+    "level": "ERROR",
+    "area": "payments",
+    "message": "Payment session received two successful authorization callbacks for a single cart id",
+    "feature_flag": "payment-retry-handler",
+    "customer_visible": true
+  },
+  {
+    "timestamp": "2026-05-15T18:25:33",
+    "level": "ERROR",
+    "area": "frontend",
+    "message": "CartDrawerException: infinite render loop triggered after opening cart drawer",
+    "feature_flag": "cart-drawer-v3",
+    "customer_visible": true
+  },
+  {
+    "timestamp": "2026-05-15T18:27:01",
+    "level": "WARN",
+    "area": "frontend",
+    "message": "Main thread blocked for 8800ms after cart drawer animation started",
+    "feature_flag": "cart-drawer-v3",
+    "customer_visible": true
+  },
+  {
+    "timestamp": "2026-05-15T18:30:00",
+    "level": "INFO",
+    "area": "shipping",
+    "message": "Address autocomplete returned 200 OK",
+    "feature_flag": "address-autocomplete-v1",
+    "customer_visible": false
+  }
+]

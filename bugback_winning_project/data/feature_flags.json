@@ -1,0 +1,38 @@
+[
+  {
+    "name": "promo-engine-v2",
+    "enabled": true,
+    "area": "checkout",
+    "risk": "high",
+    "released_at": "2026-05-14T10:30:00",
+    "owner": "Checkout Platform",
+    "description": "New discount engine that recalculates promotions during checkout session refresh."
+  },
+  {
+    "name": "payment-retry-handler",
+    "enabled": true,
+    "area": "payments",
+    "risk": "critical",
+    "released_at": "2026-05-14T12:05:00",
+    "owner": "Payments",
+    "description": "Retries payment authorization when confirmation page load times out."
+  },
+  {
+    "name": "cart-drawer-v3",
+    "enabled": true,
+    "area": "frontend",
+    "risk": "medium",
+    "released_at": "2026-05-13T16:45:00",
+    "owner": "Web Experience",
+    "description": "New cart drawer with animation and inventory preview."
+  },
+  {
+    "name": "address-autocomplete-v1",
+    "enabled": true,
+    "area": "shipping",
+    "risk": "low",
+    "released_at": "2026-05-12T09:15:00",
+    "owner": "Growth",
+    "description": "Autocomplete component for shipping address form."
+  }
+]

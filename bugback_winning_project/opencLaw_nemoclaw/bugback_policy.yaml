@@ -1,0 +1,21 @@
+name: bugback-edge-policy
+mode: local_edge
+privacy:
+  keep_local:
+    - customer_complaints
+    - browser_sessions
+    - system_logs
+    - feature_flags
+    - investigation_memory
+blocked_without_human_approval:
+  - disable_feature_flag
+  - issue_refund
+  - send_customer_email
+  - change_payment_state
+allowed_autonomous_actions:
+  - reproduce_bug_in_browser
+  - search_logs
+  - read_feature_flags
+  - generate_engineering_ticket
+  - draft_customer_response
+  - save_investigation_memory

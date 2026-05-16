@@ -1,0 +1,11 @@
+[
+  {
+    "created_at": "2026-05-15T20:22:01",
+    "complaint": "I tried to use my discount code SAVE20, but it disappeared at checkout.",
+    "status": "VERIFIED",
+    "severity": "P2",
+    "affected_area": "checkout",
+    "issue_type": "Discount disappears during checkout",
+    "likely_cause": "promo-engine-v2"
+  }
+]
